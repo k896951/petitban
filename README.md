@@ -22,13 +22,35 @@ It consists of:
 
 ## Installation (FreeBSD Ports)
 
-Place the ports skeleton under:
+### 1. Extract the ports skeleton
 
-/usr/ports/sysutils/petitban/
+If you downloaded petitban-ports-1.0.tar.gz into your home directory:
+
+* The ports skeleton is only required the first time.
+
+```
+k896951@host: ~# su
+Password:
+root@host:/home/k896951 #
+root@host:/home/k896951 # mkdir -p /usr/ports/sysutils/petitban
+root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
+root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-1.0.tar.gz
+```
+
+### 2. Place the distfile
+
+If you downloaded petitban-1.0.tar.gz into your home directory:
+
+```
+root@host:/home/k896951 # cp petitban-1.0.tar.gz /usr/ports/distfiles/
+```
+
+### 3. Build and install
 
 Then install:
+
 ```
-root@host:/root # cd /usr/ports/sysutils/petitban
+root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
 root@host:/usr/ports/sysutils/petitban # make install clean
 ```
 
@@ -37,8 +59,44 @@ root@host:/usr/ports/sysutils/petitban # make install clean
 ## Configuration
 
 ipfw2 lookup table createtion:
+
 ```
 root@host:/root # ipfw table 80 create
+```
+It's best to simply create lookup table 80 using a custom ipfw2 script.
+
+The following is a sample script.
+
+```/etc/ipfw.rules
+#!/bin/sh
+
+fwcmd="/sbin/ipfw"
+
+${fwcmd} -q flush
+
+${fwcmd} -q table 80 create type addr
+${fwcmd} table 80 flush
+
+${fwcmd} add 00100 allow ip from any to any via lo0
+${fwcmd} add 00200 deny ip from any to 127.0.0.0/8
+${fwcmd} add 00300 deny ip from 127.0.0.0/8 to any
+${fwcmd} add 00400 deny ip from any to ::1
+${fwcmd} add 00500 deny ip from ::1 to any
+${fwcmd} add 00600 allow ipv6-icmp from :: to ff02::/16
+${fwcmd} add 00700 allow ipv6-icmp from fe80::/10 to fe80::/10
+${fwcmd} add 00800 allow ipv6-icmp from fe80::/10 to ff02::/16
+${fwcmd} add 00900 allow ipv6-icmp from any to any icmp6types 1
+${fwcmd} add 01000 allow ipv6-icmp from any to any icmp6types 2,135,136
+
+${fwcmd} add 02000 deny ip from "table(80)" to any
+${fwcmd} add 02001 allow tcp from any to me 443 in setup
+${fwcmd} add 02002 deny tcp from any to me 443 in tcpflags fin,psh,urg
+${fwcmd} add 02003 deny tcp from any to me 443 in tcpflags syn,fin
+${fwcmd} add 02004 deny tcp from any to me 443 in tcpflags !syn,!ack,!rst
+
+${fwcmd} add 65000 allow ip from any to any
+${fwcmd} add 65535 count ip from any to any not // orphaned dynamic states counter
+${fwcmd} add 65535 deny ip from any to any
 ```
 
 Default config file:
@@ -122,6 +180,7 @@ wrapper is executed only when USE_PETITBAN=1
 
 
 ## 3. /usr/local/bin/petitban_wrapper.sh
+
 ```petitban_wrapper.sh
 #!/bin/sh
 
