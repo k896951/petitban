@@ -12,9 +12,9 @@ It consists of:
 ## Features
 
 - FreeBSD‑native IP blocking using **ipfw2 lookup table**
-- The Python daemon will receive add/del requests and manipulate the lookup table
+- The Python daemon receives add/del requests and manages the lookup table
 - Lightweight sender script (`petitban_send.py`)
-- Apache SSL VirtualHost compatible (uses piped log, not ExtFilter)
+- Apache SSL VirtualHost compatible (uses piped log, not mod_ext_filter)
 - Designed for log‑driven or event‑driven banning
 - rc.d integration included
 
@@ -58,7 +58,7 @@ root@host:/usr/ports/sysutils/petitban # make install clean
 
 ## Configuration
 
-ipfw2 lookup table createtion:
+ipfw2 lookup table creation:
 
 ```
 root@host:/root # ipfw table 80 create
@@ -141,7 +141,7 @@ root@host:/root # ipfw table 80 list
 
 # Apache Integration (SSL‑compatible)
 
-petitban integrates with Apache via **piped logs**, not ExtFilter.  
+petitban integrates with Apache via **piped logs** (not mod_ext_filter).  
 This works reliably under SSL VirtualHosts.
 
 Apache will:
