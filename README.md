@@ -162,7 +162,8 @@ RewriteCond %{REQUEST_URI} (/php|php/) [NC,OR]
 RewriteCond %{REQUEST_URI} \.\. [NC,OR]
 RewriteCond %{REQUEST_URI} \.(git|env|bak|exe) [NC,OR]
 RewriteCond %{REQUEST_URI} /bin/[bckz]*sh [NC,OR]
-RewriteCond %{REQUEST_URI} (wp\-|cgi\-bin|owa|oracle|admin|server)/ [NC]
+RewriteCond %{REQUEST_URI} /(wp\-|cgi\-bin|owa|oracle|admin) [NC,OR]
+RewriteCond %{REQUEST_URI} (owa|oracle|admin|server)/ [NC]
 RewriteRule ^ - [E=USE_PETITBAN:1]
 ```
 This sets USE_PETITBAN=1 only for suspicious requests.
