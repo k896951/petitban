@@ -1,0 +1,9 @@
+petitban is an IP autoblocking daemon designed for FreeBSD servers
+utilizing IPFW2 and WebSocket interfaces.
+
+For example, it works in conjunction with Apache's pipe logger to 
+automatically block malicious IP addresses.
+
+This daemon is designed for small to medium-sized FreeBSD servers, 
+aiming to provide simple and reliable IP autoblocking functionality.
+

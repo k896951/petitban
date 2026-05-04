@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# PROVIDE: petitban_daemon
+# REQUIRE: NETWORKING
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="petitban_daemon"
+rcvar="${name}_enable"
+
+pidfile="/var/run/${name}.pid"
+command="/usr/sbin/daemon"
+command_args="-u root -P ${pidfile} %%PYTHON_CMD%% %%PREFIX%%/bin/petitban_daemon.py"
+
+load_rc_config $name
+: ${petitban_daemon_enable:="NO"}
+
+run_rc_command "$1"
+

@@ -1,0 +1,4 @@
+bin/petitban_daemon.py
+bin/petitban_send.py
+bin/petitban_wrapper.sh.sample
+etc/petitban.conf.sample
