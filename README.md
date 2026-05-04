@@ -153,7 +153,8 @@ tail -F /var/log/auth.log | \
       /usr/local/bin/petitban_send.py ADD "$ip"
   done
 ```
-License
+
+## License
 
 BSD 2‑Clause License
 
