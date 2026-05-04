@@ -9,7 +9,6 @@ MAINTAINER=    metanole@gmail.com
 COMMENT=       A simple IP address ban daemon using ipfw2 for FreeBSD.
 LICENSE=       BSD2CLAUSE
 USES=          python:run shebangfix
-USE_PYTHON=    autoplist distutils
 RUN_DEPENDS+=  ${PYTHON_PKGNAMEPREFIX}websockets>=16.0:devel/py-websockets@${PY_FLAVOR}
 SHEBANG_REGEX= ^(petitban_daemon\.py|petitban_send\.py)$
 SHEBANG_FILES= petitban_daemon.py petitban_send.py
