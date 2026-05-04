@@ -1,5 +1,9 @@
 #!/usr/local/bin/python3.11
 #
+# Copyright (c) 2026, k896951
+# All rights reserved.
+# See must LICENSE file.
+#
 # Note:
 #   Ubuntu/Debian では /usr/bin/env python が有効だが、
 #   FreeBSD (pkg/ports) では python コマンドが提供されないため失敗する。
