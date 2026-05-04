@@ -1,6 +1,8 @@
 # petitban
 
-**petitban** is a lightweight IP ban system for FreeBSD using **ipfw2 lookup tables.**  
+1. **petitban** is a lightweight IP ban system for FreeBSD using **ipfw2 lookup tables.**  
+2. It doesn't perform log parsing by itself and is intended to be driven by external log analyzers or event sources.
+
 It consists of:
 
 - `petitban_daemon.py` — background daemon that manages ipfw table entries  
@@ -11,7 +13,7 @@ It consists of:
 
 ## Features
 
-- FreeBSD‑native IP blocking using **ipfw2 lookup table**
+- FreeBSD‑native IP blocking using **ipfw2 lookup tables**
 - The Python daemon receives add/del requests and manages the lookup table
 - Lightweight sender script (`petitban_send.py`)
 - Apache SSL VirtualHost compatible (uses piped log, not mod_ext_filter)
@@ -21,6 +23,9 @@ It consists of:
 ---
 
 ## Installation (FreeBSD Ports)
+
+1. This section describes installation via the FreeBSD Ports system.
+2. Manual installation is possible but not documented here.
 
 ### 1. Extract the ports skeleton
 
@@ -67,6 +72,11 @@ It's best to simply create lookup table 80 using a custom ipfw2 script.
 
 The following is a sample script.
 
+⚠️ WARNING:
+
+This example script flushes all existing ipfw rules.
+Do not use it as-is on a production system unless you fully understand its effects.
+
 ```/etc/ipfw.rules
 #!/bin/sh
 
@@ -108,10 +118,13 @@ Default config file:
   DEFAULT_IPFW_TABLE=80
   ```
 If no lookup table is specified, table 80 is assumed.
+petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
 
 ---
 
 ## Usage
+
+All commands must be executed as root.
 
 Start the daemon:
 ```
@@ -146,10 +159,10 @@ This works reliably under SSL VirtualHosts.
 
 Apache will:
 
-1. `.htaccess` checks whether the request is suspicious  
-2. If suspicious → sets `USE_PETITBAN=1`  
-3. `CustomLog` with `env=USE_PETITBAN` triggers the wrapper  
-4. wrapper receives the client IP and URL, and calls petitban_send.py
+1. .htaccess checks whether the request is suspicious  
+2. If suspicious, it sets USE_PETITBAN=1
+3. CustomLog with env=USE_PETITBAN triggers the wrapper  
+4. The wrapper receives the client IP and URL and calls petitban_send.py
 
 ---
 
@@ -204,6 +217,8 @@ Example: SSH brute‑force detection (external feeder)
 petitban_send.py requires arguments, so stdin cannot be piped directly.
 
 Example watcher:
+
+This is only an example; no deduplication or rate limiting is performed.
 ```
 #!/bin/sh
 tail -F /var/log/auth.log | \
