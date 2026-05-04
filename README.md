@@ -2,6 +2,7 @@
 
 1. **petitban** is a lightweight IP ban system for FreeBSD using **ipfw2 lookup tables.**  
 2. It doesn't perform log parsing by itself and is intended to be driven by external log analyzers or event sources.
+3. petitban is not a fail2ban replacement.
 
 It consists of:
 
@@ -228,6 +229,14 @@ tail -F /var/log/auth.log | \
       /usr/local/bin/petitban_send.py ADD "$ip"
   done
 ```
+
+## Design
+
+petitban intentionally minimizes its scope.
+
+It manages only the entries in the ipfw2 lookup table, delegating the discovery logic to an external solution.
+
+This ensures auditability and ease of debugging.
 
 ## License
 
