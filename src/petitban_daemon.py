@@ -19,6 +19,7 @@ import configparser
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
 DAEMONNAME  = "petitban"
+VERSION     = "1.1"
 LAST_ADD_IP = None
 
 config = configparser.ConfigParser()
@@ -106,13 +107,13 @@ async def handler(websocket):
                 pass
 
 def handle_sigterm(signum, frame):
-    log_syslog(f"Shutting down {DAEMONNAME} daemon (SIGTERM received)")
+    log_syslog(f"Shutting down {DAEMONNAME} {VERSION} daemon (SIGTERM received)")
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 async def main():
-    log_syslog(f"{DAEMONNAME} daemon started on addr ws://{LISTEN_ADDR}:{LISTEN_PORT}")
+    log_syslog(f"{DAEMONNAME} {VERSION} daemon started on addr ws://{LISTEN_ADDR}:{LISTEN_PORT}")
     async with websockets.serve(handler, LISTEN_ADDR, LISTEN_PORT):
         await asyncio.Future()  # run forever
 
