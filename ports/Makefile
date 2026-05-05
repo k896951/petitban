@@ -3,7 +3,7 @@
 PORTNAME=      petitban
 PORTVERSION=   1.1
 CATEGORIES=    sysutils
-MASTER_SITES=  https://github.com/k896951/petitban/releases/download/${PORTVERSION}/
+MASTER_SITES=  https://github.com/k896951/petitban/releases/download/v${PORTVERSION}/
 DISTFILES=     ${PORTNAME}-${PORTVERSION}.tar.gz
 MAINTAINER=    metanole@gmail.com
 COMMENT=       A simple IP address ban daemon using ipfw2 for FreeBSD.
