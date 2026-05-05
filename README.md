@@ -121,6 +121,17 @@ Default config file:
 If no lookup table is specified, table 80 is assumed.
 petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
 
+If no lookup table is specified, table 80 is assumed.
+petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
+
+/usr/local/etc/rc.conf:
+
+Add a line to the pritban settings.
+
+  ```
+  petitban_daemon_enable="YES"
+  ```
+
 ---
 
 ## Usage
