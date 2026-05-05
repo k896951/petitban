@@ -30,9 +30,9 @@ It consists of:
 
 ### 1. Extract the ports skeleton
 
-If you downloaded petitban-ports-1.0.tar.gz into your home directory:
+If you downloaded petitban-ports-x.x.tar.gz into your home directory:
 
-* The ports skeleton is only required the first time.
+ * The ports skeleton is only required the first time.
 
 ```
 k896951@host: ~# su
@@ -40,15 +40,15 @@ Password:
 root@host:/home/k896951 #
 root@host:/home/k896951 # mkdir -p /usr/ports/sysutils/petitban
 root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
-root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-1.0.tar.gz
+root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-x.x.tar.gz
 ```
 
 ### 2. Place the distfile
 
-If you downloaded petitban-1.0.tar.gz into your home directory:
+If you downloaded petitban-x.x.tar.gz into your home directory:
 
 ```
-root@host:/home/k896951 # cp petitban-1.0.tar.gz /usr/ports/distfiles/
+root@host:/home/k896951 # cp petitban-x.x.tar.gz /usr/ports/distfiles/
 ```
 
 ### 3. Build and install
