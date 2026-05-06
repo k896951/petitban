@@ -126,7 +126,7 @@ petitban never creates or destroys ipfw tables by itself; it only modifies exist
 
 /etc/rc.conf:
 
-Add a line to the pritban settings.
+Add a line to the petitban settings.
 
   ```
   petitban_daemon_enable="YES"
