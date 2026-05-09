@@ -19,6 +19,7 @@ It consists of:
 - Lightweight sender script (`petitban_send.py`)
 - Apache SSL VirtualHost compatible (uses piped log, not mod_ext_filter)
 - Designed for log‑driven or event‑driven banning
+- BAN-IP data can be shared across multiple petitban instances.
 - rc.d integration included
 
 ---
@@ -43,20 +44,11 @@ root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
 root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-x.x.tar.gz
 ```
 
-### 2. Place the distfile
-
-If you downloaded petitban-x.x.tar.gz into your home directory:
-
-```
-root@host:/home/k896951 # cp petitban-x.x.tar.gz /usr/ports/distfiles/
-```
-
-### 3. Build and install
+### 2. Build and install
 
 Then install:
 
 ```
-root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
 root@host:/usr/ports/sysutils/petitban # make install clean
 ```
 
