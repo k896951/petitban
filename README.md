@@ -204,7 +204,7 @@ The following example shows how BAN-IP sharing works inside a LAN environment.
 
 ### 2. BAN-IP sharing via Reverse Proxy (wss)
 The following example shows how to share BAN-IP information over the Internet using a WebSocket reverse proxy.
-<img width="1681" height="752" alt="image" src="https://github.com/user-attachments/assets/a0015b43-46fc-42a2-a249-592cd292e167" />
+<img width="1680" height="749" alt="image" src="https://github.com/user-attachments/assets/8de953e7-7310-4dbc-8d94-1de65cc88bb4" />
 
 ---
 
