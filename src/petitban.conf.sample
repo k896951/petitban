@@ -10,9 +10,12 @@ LISTEN_PORT=8765
 # outer endpoint information
 OUTER_LISTEN_ADDR=
 OUTER_LISTEN_PORT=8765
-OUTER_ALLOWED_HOST=
+OUTER_ALLOWED_HOSTS=
 
-# relay host information
+# relay host information deprecated
 RELAYHOSTS=
 RELAYPORT=8765
 RELAYPATH=/
+
+# relay url information
+RELAYURLS=
