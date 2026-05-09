@@ -182,6 +182,12 @@ Add a line to the petitban settings.
   ```
   petitban_daemon_enable="YES"
   ```
+---
+
+## BAN-IP Standalone Examples
+The following example shows the settings for standalone operation.
+<img width="1052" height="272" alt="image" src="https://github.com/user-attachments/assets/0179e5e9-0133-4dfd-adf0-0810775d6b56" />
+
 
 ---
 
