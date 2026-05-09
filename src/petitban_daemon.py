@@ -160,7 +160,7 @@ async def process_local(words):
             log_syslog(f"Error adding : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
             return
 
-        if RELAYHOSTS:
+        if RELAYURLS:
             await relay_sync(tbl, "ADD", ip)
 
     elif act == "DEL":
@@ -172,7 +172,7 @@ async def process_local(words):
             log_syslog(f"Error deleting : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
             return
 
-        if RELAYHOSTS:
+        if RELAYURLS:
             await relay_sync(tbl, "DEL", ip)
 
 ##
