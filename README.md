@@ -185,6 +185,18 @@ Add a line to the petitban settings.
 
 ---
 
+## BAN-IP Sharing Examples
+
+### 1. BAN-IP sharing on LAN
+<img width="1115" height="566" alt="image" src="https://github.com/user-attachments/assets/6bfcf8a0-e470-426b-b05c-4a88be9b8661" />
+
+---
+
+### 2. BAN-IP sharing via Reverse Proxy (wss)
+<img width="1117" height="684" alt="image" src="https://github.com/user-attachments/assets/1b726d54-e8e6-4b0a-aefe-c5158a8ca7da" />
+
+---
+
 ## Usage
 
 All commands must be executed as root.
