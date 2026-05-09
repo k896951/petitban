@@ -41,6 +41,7 @@ Password:
 root@host:/home/k896951 #
 root@host:/home/k896951 # mkdir -p /usr/ports/sysutils/petitban
 root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
+root@host:/home/k896951 # https://github.com/k896951/petitban/releases/download/v1.3/petitban-ports-x.x.tar.gz
 root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-x.x.tar.gz
 ```
 
@@ -49,7 +50,7 @@ root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-x.x.tar.gz
 Then install:
 
 ```
-root@host:/usr/ports/sysutils/petitban # make install clean
+root@host:/usr/ports/sysutils/petitban # make deinstall clean install clean
 ```
 
 ---
