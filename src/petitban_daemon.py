@@ -22,7 +22,7 @@ import socket
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
 DAEMONNAME  = "petitban"
-VERSION     = "1.2"
+VERSION     = "1.3"
 LAST_ADD_IP = None
 
 config = configparser.ConfigParser()
@@ -39,6 +39,7 @@ OUTER_ALLOWED_HOSTS = [h.strip() for h in config['DEFAULT'].get('OUTER_ALLOWED_H
 RELAYHOSTS          = [h.strip() for h in config['DEFAULT'].get('RELAYHOSTS', '').split(',') if h.strip()]
 RELAYPORT           = config['DEFAULT'].getint('RELAYPORT', 443)
 RELAYPATH           = config['DEFAULT'].get('RELAYPATH', '/petitban-sync')
+RELAYURLS           = [u.strip() for u in config['DEFAULT'].get('RELAYURLS', '').split(',') if u.strip()]
 
 ## 
 ## logging
@@ -95,13 +96,11 @@ async def relay_sync(tbl, act, ip):
     uid = str(uuid.uuid4())
     message = f"SYNC {uid} {tbl} {act} {ip}"
 
-    for host in RELAYHOSTS:
-        scheme = "ws" if ipaddress.ip_address(socket.gethostbyname(host)).is_private else "wss"
-        url = f"{scheme}://{host}:{RELAYPORT}{RELAYPATH}"
+    for url in RELAYURLS:
         try:
             async with websockets.connect(url) as ws:
                 await ws.send(message)
-                log_syslog(f"SYNC sent: {tbl} {act} {ip} to {host} syncid={uid}")
+                log_syslog(f"SYNC sent: {tbl} {act} {ip} to {url} syncid={uid}")
 
         except Exception as e:
             log_syslog(f"{url} : {e}")
@@ -222,6 +221,7 @@ async def main():
     global INNER_LISTEN_ADDR
     global OUTER_LISTEN_ADDR
     global OUTER_ALLOWED_HOSTS
+    global RELAYURLS
 
     INNER_LISTEN_ADDR = normalize_host(INNER_LISTEN_ADDR)
     OUTER_LISTEN_ADDR = normalize_host(OUTER_LISTEN_ADDR)
@@ -243,8 +243,20 @@ async def main():
         log_syslog(f"granted hosts: {OUTER_ALLOWED_HOSTS}")
         OUTER_ALLOWED_HOSTS = normalize_hosts(OUTER_ALLOWED_HOSTS)  #normalize to IP addr
 
-    if len(RELAYHOSTS) > 0 :
-        log_syslog(f"relay hosts: {RELAYHOSTS}")
+    if len(RELAYURLS) > 0 :
+        if len(RELAYHOSTS) > 0:
+            log_syslog("RELAYHOSTS is deprecated and ignored because RELAYURLS is defined.")
+    else :
+        RELAYURLS = []
+        for host in RELAYHOSTS :
+            scheme = "ws" if ipaddress.ip_address(socket.gethostbyname(host)).is_private else "wss"
+            RELAYURLS.append( f"{scheme}://{host}:{RELAYPORT}{RELAYPATH}" )
+
+        if len(RELAYURLS) > 0:
+            log_syslog("Converted RELAYHOSTS to RELAYURLS automatically.")
+            
+    if len(RELAYURLS) > 0 :
+        log_syslog(f"relay urls: {RELAYURLS}")
 
     try:
         await asyncio.Future()  # run forever
