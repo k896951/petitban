@@ -19,6 +19,7 @@ It consists of:
 - Lightweight sender script (`petitban_send.py`)
 - Apache SSL VirtualHost compatible (uses piped log, not mod_ext_filter)
 - Designed for log‑driven or event‑driven banning
+- BAN-IP data can be shared across multiple petitban instances.
 - rc.d integration included
 
 ---
@@ -43,20 +44,11 @@ root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
 root@host:/usr/ports/sysutils/petitban #  tar xzf ~/petitban-ports-x.x.tar.gz
 ```
 
-### 2. Place the distfile
-
-If you downloaded petitban-x.x.tar.gz into your home directory:
-
-```
-root@host:/home/k896951 # cp petitban-x.x.tar.gz /usr/ports/distfiles/
-```
-
-### 3. Build and install
+### 2. Build and install
 
 Then install:
 
 ```
-root@host:/home/k896951 # cd /usr/ports/sysutils/petitban
 root@host:/usr/ports/sysutils/petitban # make install clean
 ```
 
@@ -77,6 +69,9 @@ The following is a sample script.
 
 This example script flushes all existing ipfw rules.
 Do not use it as-is on a production system unless you fully understand its effects.
+
+If no lookup table is specified, table 80 is assumed.
+petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
 
 ```/etc/ipfw.rules
 #!/bin/sh
@@ -112,17 +107,75 @@ ${fwcmd} add 65535 deny ip from any to any
 
 Default config file:
 
-/usr/local/etc/petitban.conf
+`/usr/local/etc/petitban.conf` defines how petitban listens for local BAN-IP events, accepts SYNC requests from other instances, and optionally relays BAN-IP updates across multiple hosts.
+
+All values are read at startup and normalized for safety (hostnames are resolved to IP addresses).
 
   Example:
   ```
+  [DEFAULT]
+  IPFWCMD=/sbin/ipfw
   DEFAULT_IPFW_TABLE=80
+  EXCLUDEIPS=127.0.0.1
+  
+  # inner endpoint (local BAN-IP events)
+  LISTEN_ADDR=127.0.0.1
+  LISTEN_PORT=8765
+  
+  # outer endpoint (receiving SYNC from other instances)
+  OUTER_LISTEN_ADDR=
+  OUTER_LISTEN_PORT=8765
+  OUTER_ALLOWED_HOST=
+  
+  # relay hosts (sending SYNC to remote instances)
+  RELAYURLS=
   ```
-If no lookup table is specified, table 80 is assumed.
-petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
 
-If no lookup table is specified, table 80 is assumed.
-petitban never creates or destroys ipfw tables by itself; it only modifies existing tables.
+### **petitban.conf parameters**
+
+- **EXCLUDEIPS**  
+  IP addresses that should never be added to the firewall table.  
+  Useful for protecting internal services or monitoring hosts.
+
+- **DEFAULT_IPFW_TABLE**  
+  Default ipfw table number used when no table is specified.
+
+- **LISTEN_ADDR / LISTEN_PORT**  
+  Local WebSocket endpoint used by `petitban_send.py`.  
+  Hostnames are resolved to IP addresses at startup.  
+  Used for receiving local BAN-IP events.
+
+- **OUTER_LISTEN_ADDR / OUTER_LISTEN_PORT**  
+  Optional external WebSocket endpoint for receiving `SYNC` messages from remote petitban instances.  
+  Leave `OUTER_LISTEN_ADDR` empty to disable external sync.
+
+- **OUTER_ALLOWED_HOST**  
+  Comma‑separated list of allowed remote hosts.  
+  Hostnames are resolved to IP addresses at startup and compared against the `X-Forwarded-For` header.  
+  Only these hosts are permitted to send BAN-IP sync requests.
+
+- **RELAYURLS**  
+  The URL of the remote PetitBan instance, starting with ws:// or wss://, to which the BAN-IP update will be sent.
+  Used to share BAN-IPs across multiple instances.
+
+- **RELAYHOSTS (deprecated)**  
+  List of remote petitban instances to send BAN-IP updates to.  
+  Hostnames are intentionally **not normalized** because relay connections may require `wss://` via a reverse proxy.  
+  Used for BAN-IP sharing across multiple instances.
+
+- **RELAYPORT / RELAYPATH  (deprecated)**  
+  Port and path used when connecting to remote relay hosts.
+
+### **BAN-IP sharing**
+
+petitban supports sharing BAN-IP events across multiple instances.  
+This works over WebSocket (`ws://`).  
+When sharing BAN-IP information **over the Internet**, use a WebSocket reverse proxy (e.g., Apache `mod_proxy_wstunnel`) to provide secure `wss://` access.
+
+When exposing this feature over the Internet, use a WebSocket reverse proxy such as Apache mod_proxy.  
+Note: Apache 2.4.58+ integrates WebSocket support into mod_proxy, so mod_proxy_wstunnel is no longer available as a separate module.
+
+
 
 /etc/rc.conf:
 
@@ -131,6 +184,27 @@ Add a line to the petitban settings.
   ```
   petitban_daemon_enable="YES"
   ```
+---
+
+## BAN-IP Standalone Examples
+
+The following example shows the settings for standalone operation.
+<img width="1052" height="272" alt="image" src="https://github.com/user-attachments/assets/0179e5e9-0133-4dfd-adf0-0810775d6b56" />
+
+
+---
+
+## BAN-IP Sharing Examples
+
+### 1. BAN-IP sharing on LAN
+The following example shows how BAN-IP sharing works inside a LAN environment.
+<img width="1115" height="566" alt="image" src="https://github.com/user-attachments/assets/6bfcf8a0-e470-426b-b05c-4a88be9b8661" />
+
+---
+
+### 2. BAN-IP sharing via Reverse Proxy (wss)
+The following example shows how to share BAN-IP information over the Internet using a WebSocket reverse proxy.
+<img width="1117" height="684" alt="image" src="https://github.com/user-attachments/assets/1b726d54-e8e6-4b0a-aefe-c5158a8ca7da" />
 
 ---
 
@@ -252,4 +326,5 @@ This ensures auditability and ease of debugging.
 ## License
 
 BSD 2‑Clause License
+
 
