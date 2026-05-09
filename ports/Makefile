@@ -1,7 +1,7 @@
 # petitban FreeBSD port
 
 PORTNAME=      petitban
-PORTVERSION=   1.1
+PORTVERSION=   1.2
 CATEGORIES=    sysutils
 MASTER_SITES=  https://github.com/k896951/petitban/releases/download/v${PORTVERSION}/
 DISTFILES=     ${PORTNAME}-${PORTVERSION}.tar.gz
