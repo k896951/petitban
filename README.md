@@ -126,7 +126,7 @@ All values are read at startup and normalized for safety (hostnames are resolved
   # outer endpoint (receiving SYNC from other instances)
   OUTER_LISTEN_ADDR=
   OUTER_LISTEN_PORT=8765
-  OUTER_ALLOWED_HOST=
+  OUTER_ALLOWED_HOSTS=
   
   # relay hosts (sending SYNC to remote instances)
   RELAYURLS=
