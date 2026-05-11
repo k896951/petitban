@@ -3,6 +3,7 @@
 1. **petitban** is a lightweight IP ban system for FreeBSD using **ipfw2 lookup tables.**  
 2. It doesn't perform log parsing by itself and is intended to be driven by external log analyzers or event sources.
 3. petitban is not a fail2ban replacement.
+4. This software project is not affiliated with or related to the band “Petit Brabancon”.
 
 It consists of:
 
