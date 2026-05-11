@@ -22,7 +22,7 @@ import socket
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
 DAEMONNAME  = "petitban"
-VERSION     = "1.3"
+VERSION     = "1.3.2"
 LAST_ADD_IP = None
 
 config = configparser.ConfigParser()
@@ -44,11 +44,16 @@ RELAYURLS           = [u.strip() for u in config['DEFAULT'].get('RELAYURLS', '')
 ## 
 ## logging
 ##
-def log_syslog(message):
-    subprocess.run(
-        ["logger", "-t", f"{DAEMONNAME}", message],
-        check=False
-    )
+def log_syslog(message: str, priority: str = "info"):
+    # priority: "info", "notice", "warning", etc.
+    try:
+        print(["logger", "-t", f"{DAEMONNAME}", "-p", f"daemon.{priority}", message])
+        subprocess.run(
+            ["logger", "-t", f"{DAEMONNAME}", "-p", f"daemon.{priority}", message],
+            check=False
+        )
+    except Exception:
+        pass
 
 ##
 ## normalize_host : hostname to IP
@@ -100,10 +105,10 @@ async def relay_sync(tbl, act, ip):
         try:
             async with websockets.connect(url) as ws:
                 await ws.send(message)
-                log_syslog(f"SYNC sent: {tbl} {act} {ip} to {url} syncid={uid}")
+                log_syslog(f"SYNC sent: {tbl} {act} {ip} to {url} syncid={uid}","notice")
 
         except Exception as e:
-            log_syslog(f"{url} : {e}")
+            log_syslog(f"{url} : {e}","warning")
 
 ##
 ## Request from ws://OUTER_LISTEN_ADDR:OUTER_LISTN_PORT
@@ -122,16 +127,16 @@ async def process_sync(words, clientip):
     if act == "ADD":
         rc, out, err = run_ipfw([IPFWCMD, "table", tbl, "add", ip])
         if rc == 0:
-            log_syslog(f"Added to table {tbl}: {ip} ,Request from {clientip} syncid={syncid}")
+            log_syslog(f"Added to table {tbl}: {ip} ,Request from {clientip} syncid={syncid}","notice")
         elif rc != 71:
-            log_syslog(f"Error adding : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
+            log_syslog(f"Error adding : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}","warning")
 
     elif act == "DEL":
         rc, out, err = run_ipfw([IPFWCMD, "table", tbl, "delete", ip])
         if rc == 0:
-            log_syslog(f"Deleted from table {tbl}: {ip} ,Request from {clientip} syncid={syncid}")
+            log_syslog(f"Deleted from table {tbl}: {ip} ,Request from {clientip} syncid={syncid}","notice")
         elif rc != 71:
-            log_syslog(f"Error deleting : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
+            log_syslog(f"Error deleting : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}","warning")
 
 ##
 ## Request from ws://INNER_LISTEN_ADDR:INNER_LISTEN_PORT
@@ -154,10 +159,10 @@ async def process_local(words):
         LAST_ADD_IP = ip
         rc, out, err = run_ipfw([IPFWCMD, "table", tbl, "add", ip])
         if rc == 0:
-            log_syslog(f"Added to table {tbl}: {ip} ,{comment}")
+            log_syslog(f"Added to table {tbl}: {ip} ,{comment}","notice")
         elif rc != 71:
             LAST_ADD_IP = None
-            log_syslog(f"Error adding : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
+            log_syslog(f"Error adding : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}","warning")
             return
 
         if RELAYURLS:
@@ -167,9 +172,9 @@ async def process_local(words):
         LAST_ADD_IP = None
         rc, out, err = run_ipfw([IPFWCMD, "table", tbl, "delete", ip])
         if rc == 0:
-            log_syslog(f"Deleted from table {tbl}: {ip} ,{comment}")
+            log_syslog(f"Deleted from table {tbl}: {ip} ,{comment}","notice")
         elif rc != 71:
-            log_syslog(f"Error deleting : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}")
+            log_syslog(f"Error deleting : table={tbl}, ip={ip}, rc={rc}, stderr={err.strip()}","warning")
             return
 
         if RELAYURLS:
@@ -184,7 +189,7 @@ async def handler_inner(websocket):
         words = shlex.split(instruction)
 
         if (len(words) != 4) or ( words[1].upper() not in ("ADD", "DEL")) :
-            log_syslog(f"bad instruction:{instruction}")
+            log_syslog(f"bad instruction:{instruction}","warning")
             continue
 
         await process_local(words)
@@ -198,14 +203,14 @@ async def handler_outer(websocket):
         words = shlex.split(instruction)
 
         if (len(words) != 5) or (words[0].upper() != "SYNC") :
-            log_syslog(f"bad SYNC instruction:{instruction}")
+            log_syslog(f"bad SYNC instruction:{instruction}","warning")
             continue
  
         xff = websocket.request.headers.get("X-Forwarded-For")
         clientip = xff.split(",")[0].strip() if xff else websocket.remote_address[0]
 
         if clientip not in OUTER_ALLOWED_HOSTS:
-            log_syslog(f"Rejected not granted host: {clientip}")
+            log_syslog(f"Rejected not granted host: {clientip}","warning")
             await websocket.close()
             return
 
@@ -237,15 +242,15 @@ async def main():
         )
         message += f", ws://{OUTER_LISTEN_ADDR}:{OUTER_LISTEN_PORT}"
 
-    log_syslog(message)
+    log_syslog(message,"info")
 
     if OUTER_LISTEN_ADDR != '' and (len(OUTER_ALLOWED_HOSTS) >= 1) :
-        log_syslog(f"granted hosts: {OUTER_ALLOWED_HOSTS}")
+        log_syslog(f"granted hosts: {OUTER_ALLOWED_HOSTS}","info")
         OUTER_ALLOWED_HOSTS = normalize_hosts(OUTER_ALLOWED_HOSTS)  #normalize to IP addr
 
     if len(RELAYURLS) > 0 :
         if len(RELAYHOSTS) > 0:
-            log_syslog("RELAYHOSTS is deprecated and ignored because RELAYURLS is defined.")
+            log_syslog("RELAYHOSTS is deprecated and ignored because RELAYURLS is defined.","info")
     else :
         RELAYURLS = []
         for host in RELAYHOSTS :
@@ -253,10 +258,10 @@ async def main():
             RELAYURLS.append( f"{scheme}://{host}:{RELAYPORT}{RELAYPATH}" )
 
         if len(RELAYURLS) > 0:
-            log_syslog("Converted RELAYHOSTS to RELAYURLS automatically.")
+            log_syslog("Converted RELAYHOSTS to RELAYURLS automatically.","info")
             
     if len(RELAYURLS) > 0 :
-        log_syslog(f"relay urls: {RELAYURLS}")
+        log_syslog(f"relay urls: {RELAYURLS}","info")
 
     try:
         await asyncio.Future()  # run forever
