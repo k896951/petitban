@@ -150,7 +150,7 @@ All values are read at startup and normalized for safety (hostnames are resolved
   Optional external WebSocket endpoint for receiving `SYNC` messages from remote petitban instances.  
   Leave `OUTER_LISTEN_ADDR` empty to disable external sync.
 
-- **OUTER_ALLOWED_HOST**  
+- **OUTER_ALLOWED_HOSTS**  
   Comma‑separated list of allowed remote hosts.  
   Hostnames are resolved to IP addresses at startup and compared against the `X-Forwarded-For` header.  
   Only these hosts are permitted to send BAN-IP sync requests.
