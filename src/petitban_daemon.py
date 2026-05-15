@@ -260,12 +260,17 @@ async def log_bad_outer_request(path, request):
         hdrs = ", ".join(f"{k}: {v}" for k, v in request.headers.raw_items())
     except Exception:
         hdrs = "N/A"
-    log_syslog(f"Bad WebSocket handshake on OUTER: path={path}, headers=[{hdrs}]", "warning")
+    log_syslog(f"OUTER handshake failed: path={path}, headers=[{hdrs}]", "warning")
     return http.HTTPStatus.BAD_REQUEST, [], b"Bad Request\n"
 
-def log_subprotocol(client, protocols, headers):
+def log_inner_subprotocol(client, protocols, headers):
     if not protocols:
-        log_syslog("Invalid WebSocket Upgrade: no subprotocol", "warning")
+        log_syslog("INNER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
+    return None
+
+def log_outer_subprotocol(client, protocols, headers):
+    if not protocols:
+        log_syslog("OUTER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
     return None
 
 async def main():
@@ -277,18 +282,20 @@ async def main():
     INNER_LISTEN_ADDR = normalize_host(INNER_LISTEN_ADDR)
     OUTER_LISTEN_ADDR = normalize_host(OUTER_LISTEN_ADDR)
 
-    websocket_inner_logger = logging.getLogger("websockets.server.inner")
+    websocket_inner_logger = logging.getLogger("petitban.ws.inner")
     websocket_inner_logger.setLevel(logging.ERROR)
-    websocket_outer_logger = logging.getLogger("websockets.server.outer")
+    websocket_inner_logger.propagate = False
+    websocket_outer_logger = logging.getLogger("petitban.ws.outer")
     websocket_outer_logger.setLevel(logging.ERROR)
+    websocket_outer_logger.propagate = False
 
     servers = [ await websockets.serve(handler_inner, INNER_LISTEN_ADDR, INNER_LISTEN_PORT,
-                                                      process_request=log_bad_inner_request, select_subprotocol=log_subprotocol, logger=websocket_inner_logger) ]
+                                                      process_request=log_bad_inner_request, select_subprotocol=log_inner_subprotocol, logger=websocket_inner_logger) ]
     message = f"{DAEMONNAME}-{VERSION} daemon started on addr ws://{INNER_LISTEN_ADDR}:{INNER_LISTEN_PORT}"
 
     if OUTER_LISTEN_ADDR != '' and (len(OUTER_ALLOWED_HOSTS) >= 1) :
         servers.append( await websockets.serve(handler_outer, OUTER_LISTEN_ADDR, OUTER_LISTEN_PORT,
-                                                      process_request=log_bad_outer_request, select_subprotocol=log_subprotocol, logger=websocket_outer_logger) )
+                                                      process_request=log_bad_outer_request, select_subprotocol=log_outer_subprotocol, logger=websocket_outer_logger) )
         message += f", ws://{OUTER_LISTEN_ADDR}:{OUTER_LISTEN_PORT}"
 
     log_syslog(message,"info")
