@@ -52,7 +52,7 @@ handler.setFormatter(formatter)
 syslog_logger.addHandler(handler)
 logginglevel = {
     "info"   : logging.INFO,
-    "notice" : logging.NOTICE,
+    "notice" : logging.INFO,
     "warning": logging.WARNING,
     "error"  : logging.ERROR
 }
