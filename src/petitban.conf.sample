@@ -1,6 +1,7 @@
 [DEFAULT]
 IPFWCMD=/sbin/ipfw
 DEFAULT_IPFW_TABLE=80
+DEFAULT_IPFW_WORKTABLE=81
 EXCLUDEIPS=127.0.0.1
 
 # inner endpoint information
