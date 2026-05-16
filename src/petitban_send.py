@@ -11,14 +11,14 @@
 
 import sys
 import asyncio
-import websockets
 import configparser
+import websockets
 
 config = configparser.ConfigParser()
 config.read('/usr/local/etc/petitban.conf')
 
 DAEMON_ADDR = config['DEFAULT'].get('LISTEN_ADDR',        '127.0.0.1')
-DAEMON_PORT = config['DEFAULT'].get('LISTEN_PORT',        '8765')
+DAEMON_PORT = config['DEFAULT'].get('LISTEN_PORT',        8765)
 IPFW_TABLE  = config['DEFAULT'].get('DEFAULT_IPFW_TABLE', '80')
 
 async def send(tbl,act,ip,comm):

@@ -10,7 +10,6 @@
 #   Apache piped logger は PATH が空に近いので、絶対パス指定が必須。
 
 import asyncio
-import websockets
 import subprocess
 import shlex
 import signal
@@ -22,6 +21,8 @@ import socket
 import http
 import logging
 import logging.handlers
+import websockets
+import websockets.http
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError, ProtocolError
 
 DAEMONNAME  = "petitban"
@@ -263,31 +264,35 @@ def handle_sigterm(signum, frame):
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
-async def log_bad_inner_request(path, request):
-    try:
-        hdrs = ", ".join(f"{k}: {v}" for k, v in request.headers.raw_items())
-    except Exception:
-        hdrs = "N/A"
-    log_syslog(f"INNER handshake failed: path={path}, headers=[{hdrs}]", "warning")
-    return http.HTTPStatus.BAD_REQUEST, [], b"Bad Request\n"
+#async def log_bad_inner_request(path, request):
+#    try:
+#        hdrs = ", ".join(f"{k}: {v}" for k, v in request.headers.raw_items())
+#    except Exception:
+#        hdrs = "N/A"
+#    log_syslog(f"INNER handshake failed: path={path}, headers=[{hdrs}]", "warning")
+#
+#    #return ( 400, [("Content-Type", "text/plain")], b"Bad Request\n" )
+#    return None
 
-async def log_bad_outer_request(path, request):
-    try:
-        hdrs = ", ".join(f"{k}: {v}" for k, v in request.headers.raw_items())
-    except Exception:
-        hdrs = "N/A"
-    log_syslog(f"OUTER handshake failed: path={path}, headers=[{hdrs}]", "warning")
-    return http.HTTPStatus.BAD_REQUEST, [], b"Bad Request\n"
+#async def log_bad_outer_request(path, request):
+#    try:
+#        hdrs = ", ".join(f"{k}: {v}" for k, v in request.headers.raw_items())
+#    except Exception:
+#        hdrs = "N/A"
+#    log_syslog(f"OUTER handshake failed: path={path}, headers=[{hdrs}]", "warning")
+#
+#    #return ( 400, [("Content-Type", "text/plain")], b"Bad Request\n" )
+#    return None
 
-def log_inner_subprotocol(client, protocols, headers):
-    if not protocols:
-        log_syslog("INNER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
-    return None
+#def log_inner_subprotocol(connection, subprotocols):
+#    if not subprotocols:
+#        log_syslog("INNER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
+#    return None
 
-def log_outer_subprotocol(client, protocols, headers):
-    if not protocols:
-        log_syslog("OUTER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
-    return None
+#def log_outer_subprotocol(connection, subprotocols):
+#    if not subprotocols:
+#        log_syslog("OUTER handshake Invalid: [WebSocket Upgrade: no subprotocol]", "warning")
+#    return None
 
 async def main():
     global INNER_LISTEN_ADDR
@@ -305,13 +310,11 @@ async def main():
     websocket_outer_logger.setLevel(logging.ERROR)
     websocket_outer_logger.propagate = False
 
-    servers = [ await websockets.serve(handler_inner, INNER_LISTEN_ADDR, INNER_LISTEN_PORT,
-                                                      process_request=log_bad_inner_request, select_subprotocol=log_inner_subprotocol, logger=websocket_inner_logger) ]
+    servers = [ await websockets.serve(handler_inner, INNER_LISTEN_ADDR, INNER_LISTEN_PORT, logger=websocket_inner_logger) ]
     message = f"{DAEMONNAME}-{VERSION} daemon started on addr ws://{INNER_LISTEN_ADDR}:{INNER_LISTEN_PORT}"
 
     if OUTER_LISTEN_ADDR != '' and (len(OUTER_ALLOWED_HOSTS) >= 1) :
-        servers.append( await websockets.serve(handler_outer, OUTER_LISTEN_ADDR, OUTER_LISTEN_PORT,
-                                                      process_request=log_bad_outer_request, select_subprotocol=log_outer_subprotocol, logger=websocket_outer_logger) )
+        servers.append( await websockets.serve(handler_outer, OUTER_LISTEN_ADDR, OUTER_LISTEN_PORT, logger=websocket_outer_logger) )
         message += f", ws://{OUTER_LISTEN_ADDR}:{OUTER_LISTEN_PORT}"
 
     log_syslog(message,"info")
