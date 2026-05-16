@@ -21,6 +21,7 @@ import ipaddress
 import socket
 import http
 import logging
+import logging.handlers
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError, ProtocolError
 
 DAEMONNAME  = "petitban"
@@ -43,19 +44,34 @@ RELAYPORT           = config['DEFAULT'].getint('RELAYPORT', 443)
 RELAYPATH           = config['DEFAULT'].get('RELAYPATH', '/petitban-sync')
 RELAYURLS           = [u.strip() for u in config['DEFAULT'].get('RELAYURLS', '').split(',') if u.strip()]
 
+syslog_logger = logging.getLogger("petitban.syslog")
+syslog_logger.setLevel(logging.INFO)
+handler = logging.handlers.SysLogHandler( address="/var/run/log", facility=logging.handlers.SysLogHandler.LOG_DAEMON )
+formatter = logging.Formatter("%(name)s: %(message)s")
+handler.setFormatter(formatter)
+syslog_logger.addHandler(handler)
+logginglevel = {
+    "info"   : logging.INFO,
+    "notice" : logging.NOTICE,
+    "warning": logging.WARNING,
+    "error"  : logging.ERROR
+}
+
 ## 
 ## logging
 ##
 def log_syslog(message: str, priority: str = "info"):
     # priority: "info", "notice", "warning", etc.
+
     try:
         ##print(["logger", "-t", f"{DAEMONNAME}", "-p", f"daemon.{priority}", message])
-        subprocess.run(
-            ["logger", "-t", f"{DAEMONNAME}", "-p", f"daemon.{priority}", message],
-            check=False
-        )
-    except Exception:
-        pass
+        syslog_logger.log(logginglevel.get(priority, logging.INFO), message)
+
+    except Exception as e:
+        try:
+            sys.stderr.write(f"petitban.syslog internal error: {e}\n")
+        except:
+            pass
 
 ##
 ## normalize_host : hostname to IP
